@@ -20,7 +20,7 @@ router.put(
         });
       }),
     body('password').trim().isLength({min: 5}),
-    body('name').trim().isEmpty()
+    body('name').trim().notEmpty()
   ],
   authController.signup
 );
