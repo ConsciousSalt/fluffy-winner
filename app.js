@@ -27,6 +27,8 @@ const fileFilter = (req, file, cb) => {
 const mongoose = require("mongoose");
 mongoose.set("useUnifiedTopology", true);
 mongoose.set("useNewUrlParser", true);
+mongoose.set("useFindAndModify", false);
+
 const MONGO_URI = require("./data/mongodb");
 
 const feedRoutes = require("./routes/feed");

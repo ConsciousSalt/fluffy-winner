@@ -9,7 +9,7 @@ router.put(
   "/signup",
   [
     body("email")
-      .normalizeEmail()
+      .normalizeEmail({all_lowercase:true})
       .isEmail()
       .withMessage("Please enter a valid email")
       .custom((value, { req }) => {
@@ -24,5 +24,8 @@ router.put(
   ],
   authController.signup
 );
+
+
+router.post('/login', authController.login);
 
 module.exports = router;
