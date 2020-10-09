@@ -3,7 +3,7 @@ const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const secret = require('../data/token');
+const secret = require("../data/token");
 
 exports.signup = (req, res, next) => {
   const errors = validationResult(req);
@@ -42,7 +42,7 @@ exports.login = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   let loadUser;
-  User.findOne({ email: email.toLowerCase()})
+  User.findOne({ email: email.toLowerCase() })
     .then((user) => {
       if (!user) {
         const error = new Error("Email could not be found");
@@ -65,7 +65,49 @@ exports.login = (req, res, next) => {
         secret(),
         { expiresIn: "1h" }
       );
-      res.status(200).json({token, userId: loadUser._id.toString()});
+      res.status(200).json({ token, userId: loadUser._id.toString() });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.getStatus = (req, res, next) => {
+  User.findById(req.userId)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not found");
+        error.statusCode = 500;
+        throw console.error;
+      }
+
+      res.status(200).json({ status: user.status });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.updateStatus = (req, res, next) => {
+  User.findById(req.userId)
+    .then((user) => {
+      if (!user) {
+        const error = new Error("User not found");
+        error.statusCode = 500;
+        throw console.error;
+      }
+      
+      user.status = req.body.status;
+      return user.save();
+    })
+    .then((user) => {
+      res.status(201).json({ status: user.status });
     })
     .catch((err) => {
       if (!err.statusCode) {
