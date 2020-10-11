@@ -1,8 +1,12 @@
 const path = require("path");
 
+const { graphqlHTTP } = require('express-graphql');
+const graphqlSchema = require('./graphql/schema');
+const qraphqlResolver = require('./graphql/resolvers');
+
 const express = require("express");
 const bodyParser = require("body-parser");
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -31,9 +35,6 @@ mongoose.set("useFindAndModify", false);
 
 const MONGO_URI = require("./data/mongodb");
 
-const feedRoutes = require("./routes/feed");
-const authRoutes = require("./routes/auth");
-
 const app = express();
 
 app.use(bodyParser.json());
@@ -48,22 +49,32 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/feed', feedRoutes);
-app.use('/auth', authRoutes);
+app.use('/graphql', graphqlHTTP({
+  schema: graphqlSchema,
+  rootValue: qraphqlResolver,
+  graphiql: true,
+  formatError(err) {
+    if (!err.originalError){
+      return err;
+    };
+    const data = err.originalError.data;
+    const message = err.message || 'An error occured';
+    const code = err.originalError.code || 500;
+    return {message: message, status: code, data: data};
+  } 
+}));
 
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
-  res.status(status).json({ message: message, data:data });
+  res.status(status).json({ message: message, data: data });
 });
 
 mongoose
   .connect(MONGO_URI)
   .then((result) => {
-    const server = app.listen(8080);
-    const io = require('./socket').init(server);
-    io.on('connection', (socket)=>{});
+    app.listen(8080);
   })
   .catch((err) => console.log(err));
