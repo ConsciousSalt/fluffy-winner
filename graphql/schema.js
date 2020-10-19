@@ -7,9 +7,14 @@ module.exports = buildSchema(`
         content: String!
         imageUrl: String
         creator: User!
-        createAt: String!
+        createdAt: String!
         updatedAt: String!
     }    
+
+    type PostData {
+        posts: [Post!]!
+        totalPosts: Int!
+    }
 
     type User {
         _id: ID!
@@ -18,7 +23,12 @@ module.exports = buildSchema(`
         password: String
         status: String!
         posts: [Post!]!
-    }    
+    }
+    
+    type AuthData {
+        token: String!
+        userId: String!
+    }
 
     input UserInputData {
         email: String!
@@ -26,18 +36,30 @@ module.exports = buildSchema(`
         password: String!
     }
 
+    input PostInputData {
+        title: String!
+        content: String!
+        imageUrl: String
+    }
+
     type RootMutation {
         createUser(userInput: UserInputData): User!
+        createPost(postInput: PostInputData): Post!
+        updatePost(postId: ID!, postInput: PostInputData): Post!
+        deletePost(postId: ID!): Boolean
+        updateStatus(status: String!): User!
     }   
 
     type RootQuery {
-        hello: String
+        login(email: String!, password: String!): AuthData!
+        getPost(postId: String!): Post!
+        getPosts(page: Int): PostData!
+        user: User!
     }
 
     schema {
         query: RootQuery
         mutation: RootMutation 
     }
-
 
 `);
